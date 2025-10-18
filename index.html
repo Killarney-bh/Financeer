@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Finance Tracker Pro</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #f0f4ff;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #1a1a2e;
+            --text-secondary: #4a5568;
+            --border: #d6e4ff;
+            --accent: #4a90e2;
+            --accent-light: #a8d5ff;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --shadow: rgba(74, 144, 226, 0.15);
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f1419;
+            --bg-secondary: #1a1f2e;
+            --bg-card: #252b3b;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --border: #2d3748;
+            --accent: #7c3aed;
+            --accent-light: #a78bfa;
+            --shadow: rgba(124, 58, 237, 0.2);
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: var(--gradient);
+            padding: 30px 20px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px var(--shadow);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        h1 {
+            color: white;
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 12px 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px var(--shadow);
+            border: 1px solid var(--border);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .section {
+            background: var(--bg-card);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .tab.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .tab:hover:not(.active) {
+            border-color: var(--accent);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        input, select, textarea {
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--shadow);
+        }
+
+        button {
+            background: var(--gradient);
+            color: white;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px var(--shadow);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--shadow);
+        }
+
+        .goals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .goal-card {
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 2px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .goal-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px var(--shadow);
+        }
+
+        .goal-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: var(--gradient);
+        }
+
+        .goal-content {
+            padding: 20px;
+        }
+
+        .goal-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar-container {
+            background: var(--bg-primary);
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 15px 0;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--gradient);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .goal-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: var(--text-secondary);
+        }
+
+        .transaction-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.3s ease;
+        }
+
+        .transaction-item:hover {
+            background: var(--bg-primary);
+        }
+
+        .transaction-info {
+            flex: 1;
+        }
+
+        .transaction-category {
+            color: var(--text-secondary);
+            font-size: 0.85em;
+            margin-top: 3px;
+        }
+
+        .transaction-amount {
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+
+        .income {
+            color: var(--success);
+        }
+
+        .expense {
+            color: var(--danger);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+
+        .yearly-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .summary-card {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid var(--border);
+        }
+
+        .file-upload-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-upload-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border: 2px dashed var(--accent);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload-label:hover {
+            background: var(--bg-primary);
+            border-color: var(--accent-light);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .delete-btn {
+            background: var(--danger);
+            padding: 8px 16px;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .goals-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1>💰 Finance Tracker Pro</h1>
+                <button class="theme-toggle" onclick="toggleTheme()">🌓 Toggle Theme</button>
+            </div>
+        </header>
+
+        <div class="dashboard">
+            <div class="stat-card">
+                <div class="stat-label">Total Income</div>
+                <div class="stat-value income" id="totalIncome">KES 0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Expenses</div>
+                <div class="stat-value expense" id="totalExpenses">KES 0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Savings</div>
+                <div class="stat-value" id="totalSavings">KES 0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Net Balance</div>
+                <div class="stat-value" id="netBalance">KES 0</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">📊 Add Transaction</h2>
+            <div class="tabs">
+                <div class="tab active" onclick="switchTransactionType('income')">Income</div>
+                <div class="tab" onclick="switchTransactionType('expense')">Expense</div>
+                <div class="tab" onclick="switchTransactionType('savings')">Savings</div>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Amount (KES)</label>
+                    <input type="number" id="transactionAmount" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="transactionCategory">
+                        <option>Salary</option>
+                        <option>Freelance</option>
+                        <option>Business</option>
+                        <option>Food</option>
+                        <option>Transport</option>
+                        <option>Rent</option>
+                        <option>Utilities</option>
+                        <option>Entertainment</option>
+                        <option>Shopping</option>
+                        <option>Healthcare</option>
+                        <option>Education</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="transactionDate">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="transactionDescription" placeholder="Optional">
+                </div>
+            </div>
+            <button onclick="addTransaction()">Add Transaction</button>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">🎯 Financial Goals</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Goal Name</label>
+                    <input type="text" id="goalName" placeholder="e.g., New Apartment">
+                </div>
+                <div class="form-group">
+                    <label>Target Amount (KES)</label>
+                    <input type="number" id="goalTarget" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label>Current Amount (KES)</label>
+                    <input type="number" id="goalCurrent" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label>Goal Type</label>
+                    <select id="goalType">
+                        <option>Apartment</option>
+                        <option>House</option>
+                        <option>Car</option>
+                        <option>Travel</option>
+                        <option>Emergency Fund</option>
+                        <option>Education</option>
+                        <option>Business</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Upload Goal Image</label>
+                <div class="file-upload-wrapper">
+                    <label for="goalImage" class="file-upload-label">
+                        📷 Choose Image
+                    </label>
+                    <input type="file" id="goalImage" accept="image/*">
+                </div>
+            </div>
+            <button onclick="addGoal()">Add Goal</button>
+            
+            <div class="goals-grid" id="goalsContainer"></div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">📈 Monthly Spending Overview</h2>
+            <div class="chart-container">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">🔄 Recent Transactions</h2>
+            <div class="transaction-list" id="transactionsList"></div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">📅 Yearly Summary</h2>
+            <div class="tabs">
+                <div class="tab active" onclick="switchYear(2025)">2025</div>
+                <div class="tab" onclick="switchYear(2024)">2024</div>
+            </div>
+            
+            <div class="yearly-summary">
+                <div class="summary-card">
+                    <h3>Total Income</h3>
+                    <div class="stat-value income" id="yearlyIncome">KES 0</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Total Expenses</h3>
+                    <div class="stat-value expense" id="yearlyExpenses">KES 0</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Total Saved</h3>
+                    <div class="stat-value" id="yearlySavings">KES 0</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Goals Achieved</h3>
+                    <div class="stat-value" id="goalsAchieved">0</div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="yearlyChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data storage
+        let data = {
+            transactions: [],
+            goals: [],
+            currentTransactionType: 'income',
+            currentYear: 2025
+        };
+
+        let monthlyChart = null;
+        let yearlyChart = null;
+
+        // Initialize
+        document.getElementById('transactionDate').valueAsDate = new Date();
+        updateDashboard();
+        renderGoals();
+        renderTransactions();
+        createMonthlyChart();
+        createYearlyChart();
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            html.setAttribute('data-theme', currentTheme === 'dark' ? '' : 'dark');
+        }
+
+        function switchTransactionType(type) {
+            data.currentTransactionType = type;
+            document.querySelectorAll('.tabs .tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function addTransaction() {
+            const amount = parseFloat(document.getElementById('transactionAmount').value);
+            const category = document.getElementById('transactionCategory').value;
+            const date = document.getElementById('transactionDate').value;
+            const description = document.getElementById('transactionDescription').value;
+
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid amount');
+                return;
+            }
+
+            const transaction = {
+                id: Date.now(),
+                type: data.currentTransactionType,
+                amount: amount,
+                category: category,
+                date: date,
+                description: description
+            };
+
+            data.transactions.push(transaction);
+            
+            // Clear form
+            document.getElementById('transactionAmount').value = '';
+            document.getElementById('transactionDescription').value = '';
+            
+            updateDashboard();
+            renderTransactions();
+            updateCharts();
+        }
+
+        function addGoal() {
+            const name = document.getElementById('goalName').value;
+            const target = parseFloat(document.getElementById('goalTarget').value);
+            const current = parseFloat(document.getElementById('goalCurrent').value) || 0;
+            const type = document.getElementById('goalType').value;
+            const imageFile = document.getElementById('goalImage').files[0];
+
+            if (!name || !target || target <= 0) {
+                alert('Please enter goal name and target amount');
+                return;
+            }
+
+            const goal = {
+                id: Date.now(),
+                name: name,
+                target: target,
+                current: current,
+                type: type,
+                image: null
+            };
+
+            if (imageFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    goal.image = e.target.result;
+                    data.goals.push(goal);
+                    clearGoalForm();
+                    renderGoals();
+                    updateDashboard();
+                };
+                reader.readAsDataURL(imageFile);
+            } else {
+                data.goals.push(goal);
+                clearGoalForm();
+                renderGoals();
+                updateDashboard();
+            }
+        }
+
+        function clearGoalForm() {
+            document.getElementById('goalName').value = '';
+            document.getElementById('goalTarget').value = '';
+            document.getElementById('goalCurrent').value = '';
+            document.getElementById('goalImage').value = '';
+        }
+
+        function deleteGoal(id) {
+            if (confirm('Are you sure you want to delete this goal?')) {
+                data.goals = data.goals.filter(g => g.id !== id);
+                renderGoals();
+                updateDashboard();
+            }
+        }
+
+        function updateDashboard() {
+            const income = data.transactions
+                .filter(t => t.type === 'income')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const expenses = data.transactions
+                .filter(t => t.type === 'expense')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const savings = data.transactions
+                .filter(t => t.type === 'savings')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const balance = income - expenses;
+
+            document.getElementById('totalIncome').textContent = `KES ${income.toLocaleString()}`;
+            document.getElementById('totalExpenses').textContent = `KES ${expenses.toLocaleString()}`;
+            document.getElementById('totalSavings').textContent = `KES ${savings.toLocaleString()}`;
+            document.getElementById('netBalance').textContent = `KES ${balance.toLocaleString()}`;
+
+            updateYearlySummary();
+        }
+
+        function renderGoals() {
+            const container = document.getElementById('goalsContainer');
+            container.innerHTML = '';
+
+            data.goals.forEach(goal => {
+                const progress = (goal.current / goal.target) * 100;
+                const isAchieved = progress >= 100;
+
+                const card = document.createElement('div');
+                card.className = 'goal-card';
+                card.innerHTML = `
+                    <img src="${goal.image || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'400\' height=\'200\'%3E%3Cdefs%3E%3ClinearGradient id=\'grad\' x1=\'0%25\' y1=\'0%25\' x2=\'100%25\' y2=\'100%25\'%3E%3Cstop offset=\'0%25\' style=\'stop-color:%23667eea;stop-opacity:1\' /%3E%3Cstop offset=\'100%25\' style=\'stop-color:%23764ba2;stop-opacity:1\' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill=\'url(%23grad)\' width=\'400\' height=\'200\'/%3E%3C/svg%3E'}" 
+                         class="goal-image" alt="${goal.name}">
+                    <div class="goal-content">
+                        <div class="goal-title">${goal.name}</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9em;">${goal.type}</div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" style="width: ${Math.min(progress, 100)}%">
+                                ${Math.round(progress)}%
+                            </div>
+                        </div>
+                        <div class="goal-stats">
+                            <span>KES ${goal.current.toLocaleString()}</span>
+                            <span>of KES ${goal.target.toLocaleString()}</span>
+                        </div>
+                        ${isAchieved ? '<div style="color: var(--success); font-weight: 700; text-align: center; margin-top: 10px;">🎉 Goal Achieved!</div>' : ''}
+                        <button class="delete-btn" onclick="deleteGoal(${goal.id})">Delete Goal</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderTransactions() {
+            const container = document.getElementById('transactionsList');
+            const sorted = [...data.transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            container.innerHTML = sorted.slice(0, 20).map(t => `
+                <div class="transaction-item">
+                    <div class="transaction-info">
+                        <div><strong>${t.description || t.category}</strong></div>
+                        <div class="transaction-category">${t.category} • ${new Date(t.date).toLocaleDateString()}</div>
+                    </div>
+                    <div class="transaction-amount ${t.type}">
+                        ${t.type === 'income' ? '+' : '-'} KES ${t.amount.toLocaleString()}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function createMonthlyChart() {
+            const ctx = document.getElementById('monthlyChart').getContext('2d');
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth();
+            const currentYear = currentDate.getFullYear();
+
+            const monthlyData = data.transactions.filter(t => {
+                const tDate = new Date(t.date);
+                return tDate.getMonth() === currentMonth && tDate.getFullYear() === currentYear;
+            });
+
+            const categories = {};
+            monthlyData.filter(t => t.type === 'expense').forEach(t => {
+                categories[t.category] = (categories[t.category] || 0) + t.amount;
+            });
+
+            monthlyChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(categories),
+                    datasets: [{
+                        data: Object.values(categories),
+                        backgroundColor: [
+                            '#4a90e2', '#7c3aed', '#10b981', '#f59e0b',
+                            '#ef4444', '#ec4899', '#8b5cf6', '#14b8a6'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: getComputedStyle(document.documentElement)
+                                    .getPropertyValue('--text-primary').trim()
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Current Month Spending by Category',
+                            color: getComputedStyle(document.documentElement)
+                                .getPropertyValue('--text-primary').trim()
+                        }
+                    }
+                }
+            });
+        }
+
+        function createYearlyChart() {
+            const ctx = document.getElementById('yearlyChart').getContext('2d');
+            
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const monthlyIncome = new Array(12).fill(0);
+            const monthlyExpenses = new Array(12).fill(0);
+            const monthlySavings = new Array(12).fill(0);
+
+            data.transactions.filter(t => new Date(t.date).getFullYear() === data.currentYear).forEach(t => {
+                const month = new Date(t.date).getMonth();
+                if (t.type === 'income') monthlyIncome[month] += t.amount;
+                else if (t.type === 'expense') monthlyExpenses[month] += t.amount;
+                else if (t.type === 'savings') monthlySavings[month] += t.amount;
+            });
+
+            yearlyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [
+                        {
+                            label: 'Income',
+                            data: monthlyIncome,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Expenses',
+                            data: monthlyExpenses,
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Savings',
+                            data: monthlySavings,
+                            borderColor: '#4a90e2',
+                            backgroundColor: 'rgba(74, 144, 226, 0.1)',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: getComputedStyle(document.documentElement)
+                                    .getPropertyValue('--text-primary').trim()
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: getComputedStyle(document.documentElement)
+                                    .getPropertyValue('--text-secondary').trim()
+                            },
+                            grid: {
+                                color: getComputedStyle(document.documentElement)
+                                    .getPropertyValue('--border').trim()
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: getComputedStyle(document.documentElement)
+                                    .getPropertyValue('--text-secondary').trim()
+                            },
+                            grid: {
+                                color: getComputedStyle(document.documentElement)
+                                    .getPropertyValue('--border').trim()
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCharts() {
+            if (monthlyChart) {
+                monthlyChart.destroy();
+            }
+            if (yearlyChart) {
+                yearlyChart.destroy();
+            }
+            createMonthlyChart();
+            createYearlyChart();
+        }
+
+        function switchYear(year) {
+            data.currentYear = year;
+            document.querySelectorAll('.section .tabs .tab').forEach(tab => {
+                if (tab.textContent === year.toString()) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            updateYearlySummary();
+            updateCharts();
+        }
+
+        function updateYearlySummary() {
+            const yearTransactions = data.transactions.filter(t => 
+                new Date(t.date).getFullYear() === data.currentYear
+            );
+
+            const yearlyIncome = yearTransactions
+                .filter(t => t.type === 'income')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const yearlyExpenses = yearTransactions
+                .filter(t => t.type === 'expense')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const yearlySavings = yearTransactions
+                .filter(t => t.type === 'savings')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const achievedGoals = data.goals.filter(g => 
+                (g.current / g.target) >= 1
+            ).length;
+
+            document.getElementById('yearlyIncome').textContent = `KES ${yearlyIncome.toLocaleString()}`;
+            document.getElementById('yearlyExpenses').textContent = `KES ${yearlyExpenses.toLocaleString()}`;
+            document.getElementById('yearlySavings').textContent = `KES ${yearlySavings.toLocaleString()}`;
+            document.getElementById('goalsAchieved').textContent = achievedGoals;
+        }
+    </script>
+</body>
+</html>
